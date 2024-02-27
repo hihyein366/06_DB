@@ -1,0 +1,61 @@
+-- 1번
+-- 학과 이름과 계열 조회
+-- 단, 컬럼명은 "학과 명", "계열"로 표시
+SELECT DEPARTMENT_NAME "학과 명", CATEGORY "계열"
+FROM TB_DEPARTMENT;
+
+-- 2번
+-- 학과의 학과 정원을 조회
+SELECT DEPARTMENT_NAME || '의 정원은 ' || CAPACITY || '명 입니다.' "학과별 정원"
+FROM TB_DEPARTMENT;
+
+-- 3번
+-- "국어국문학과" 에 다니는 여학생 중 현재 휴학중인 여학생 조회
+-- 국문학과 학과코드는 001
+SELECT STUDENT_NAME 
+FROM TB_STUDENT 
+WHERE DEPARTMENT_NO = '001'
+AND ABSENCE_YN = 'Y'
+AND SUBSTR(STUDENT_SSN, 8, 1) = '2';
+
+-- 4번
+-- 도서관에서 대출 도서 장기 연체자들 찾기
+-- 대상자 학번 A513079, A513090, A513091, A513110, A513119
+SELECT STUDENT_NAME 
+FROM TB_STUDENT 
+WHERE STUDENT_NO IN ('A513079', 'A513090', 'A513091', 'A513110', 'A513119')
+ORDER BY STUDENT_NAME DESC;
+
+-- 5번
+-- 입학 정원이 20명 이상 30명 이하인 학과들의 학과명과 계열
+SELECT DEPARTMENT_NAME, CATEGORY 
+FROM TB_DEPARTMENT 
+WHERE CAPACITY BETWEEN 20 AND 30;
+
+-- 6번
+-- 총장 제외 모든 교수가 소속 학과를 가지고 있을 때 총장 이름 알아내기
+SELECT PROFESSOR_NAME 
+FROM TB_PROFESSOR 
+WHERE DEPARTMENT_NO IS NULL;
+
+-- 7번
+-- 선수과목이 존재하는 과목들의 과목 번호 조회
+SELECT CLASS_NO 
+FROM TB_CLASS 
+WHERE PREATTENDING_CLASS_NO IS NOT NULL;
+
+-- 8번
+-- 어떤 계열 있는지 조회
+SELECT DISTINCT CATEGORY 
+FROM TB_DEPARTMENT
+ORDER BY CATEGORY;
+
+-- 9번
+-- 02학번, 전주 거주자들의 학번, 이름, 주민번호 조회. 휴학한 사람은 제외한다.
+SELECT STUDENT_NO, STUDENT_NAME, STUDENT_SSN 
+FROM TB_STUDENT 
+WHERE STUDENT_ADDRESS LIKE '%전주%'
+AND STUDENT_NO LIKE 'A2%'
+AND ABSENCE_YN = 'N';
+
+

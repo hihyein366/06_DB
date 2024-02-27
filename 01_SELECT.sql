@@ -384,6 +384,112 @@ SELECT EMP_ID, EMP_NAME, EMAIL
 FROM EMPLOYEE 
 WHERE EMAIL LIKE '___!_%' ESCAPE '!';
 
+------------------------------------------------------------
+
+/* **** ORDER BY 절 ****
+ * 
+ * - SELECT문의 조회 결과(RESULT SET)를 정렬할 때 사용하는 구문
+ * 
+ * - *** SELECT구문에서 제일 마지막에 해석된다! ***
+ * 
+ * [작성법]
+ * 3: SELECT 컬럼명 AS 별칭, 컬럼명, 컬럼명, ...
+ * 1: FROM 테이블명
+ * 2: WHERE 조건식
+ * 4: ORDER BY 컬럼명 | 별칭 | 컬럼 순서 [오름/내림 차순] 
+ * 	        [NULLS FIRST | LAST]
+ * */
+
+-- [EMPLOYEE]에서 모든사원의 이름, 급여 조회
+-- 단, 급여 오름차순으로 정렬
+SELECT EMP_NAME, SALARY 
+FROM EMPLOYEE
+ORDER BY SALARY ASC; -- ASC(ascending) : 오름차순
+
+-- [EMPLOYEE]에서 모든사원의 이름, 급여 조회
+-- 단, 급여 내림차순으로 정렬
+SELECT EMP_NAME, SALARY 
+FROM EMPLOYEE
+ORDER BY SALARY DESC; -- DESC(Descending) : 내림차순
+
+
+-- [EMPLOYEE]에서 부서코드 'D5', 'D6', 'D9'인 사원의 
+-- 사번, 이름, 부서코드를 부서코드 오름차순으로 조회
+SELECT EMP_ID, EMP_NAME, DEPT_CODE 
+FROM EMPLOYEE 
+WHERE DEPT_CODE IN ('D5', 'D6', 'D9')
+ORDER BY DEPT_CODE; -- ASC 생략가능(기본값)
+
+
+/* 컬럼 순서를 이용해 정렬하기 */
+
+-- [EMPLOYEE]에서 급여가 300만 이상, 600만 이하인 사원의
+-- 사번, 이름, 급여를 이름 내림차순으로 조회
+SELECT EMP_ID, EMP_NAME, SALARY 
+FROM EMPLOYEE 
+WHERE SALARY BETWEEN 3000000 AND 6000000
+ORDER BY 2 DESC; -- 순서로 컬럼 지정. 권장x(순서 바뀌는 일 많음)
+
+
+/* ORDER BY절에 수식 적용 */
+-- [EMPLOYEE]에서 이름, 연봉을 연봉 내림차순으로 조회
+SELECT EMP_NAME, SALARY * 12
+FROM EMPLOYEE 
+ORDER BY SALARY * 12 DESC;
+-- 정렬 시 SELECT절에 작성된 컬럼 그대로 따라 적는 경우가 많다
+
+
+/* ORDER BY절에서 별칭 사용 하기 */
+--> SELECT절 해석 이후 ORDER BY절이 해석되기 때문에 
+--> SELECT절에서 해석된 별칭 ORDER BY절에서 사용가능
+
+-- [EMPLOYEE]에서 이름, 연봉을 연봉 내림차순으로 조회
+SELECT EMP_NAME, SALARY * 12 연봉
+FROM EMPLOYEE 
+ORDER BY 연봉 DESC;
+
+
+/* WHERE절 별칭 사용 불가 확인 */
+
+SELECT EMP_NAME, DEPT_CODE 부서코드
+FROM EMPLOYEE 
+WHERE 부서코드 = 'D6';
+-- 부적합한 식별자 오류뜸
+
+
+/* NULLS FIRST / LAST 옵션 적용하기 */
+
+-- 모든 사원의 이름, 전번 조회
+
+-- 오름차순 + NULLS FIRST (NULL인 경우 제일 위에)
+SELECT EMP_NAME, PHONE FROM EMPLOYEE
+ORDER BY PHONE NULLS FIRST;
+
+-- 오름차순 + NULLS LAST (NULL인 경우 제일 밑에)
+SELECT EMP_NAME, PHONE FROM EMPLOYEE
+ORDER BY PHONE /*NULLS LAST*/; -- 기본 값
+
+-- 내림차순 + NULLS FIRST (NULL인 경우 제일 위에)
+SELECT EMP_NAME, PHONE FROM EMPLOYEE
+ORDER BY PHONE DESC NULLS FIRST; -- 정렬 기준 -> NULL 위치 순서대로 해석
+
+
+/*** 정렬 중첩 ***/
+-- 먼저 작성된 정렬 기준 깨지않고 다음 작성된 정렬 기준 적용
+
+-- [EMPLOYEE]에서 이름, 부서코드, 급여를 부서코드 오름차순, 급여 내림차순으로 조회
+SELECT EMP_NAME, DEPT_CODE, SALARY
+FROM EMPLOYEE 
+ORDER BY DEPT_CODE, SALARY DESC;
+
+-- [EMPLOYEE]에서 이름, 부서코드, 직급코드(JOB_CODE)를
+-- 부서코드 오름차수, 직급코드 내림 차순, 이름 오름차순으로 조회
+SELECT EMP_NAME 이름, DEPT_CODE 부서코드, JOB_CODE 직급코드 
+FROM EMPLOYEE 
+ORDER BY 부서코드, 직급코드 DESC, 이름;
+
+
+
 
 
 
