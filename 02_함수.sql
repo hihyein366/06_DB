@@ -537,8 +537,8 @@ FROM EMPLOYEE;
 
 -- [EMPLOYEE]에 존재하는 여, 남 사원의 수(SUM 버전)
 SELECT 
-	SUM(DECODE(SUBSTR(EMP_NO, 8, 1), 2, 1, 0)) 여자,
-	SUM(DECODE(SUBSTR(EMP_NO, 8, 1), 1, 1, 0)) 남자
+	SUM(DECODE(SUBSTR(EMP_NO, 8, 1), '2', 1, 0)) 여자,
+	SUM(DECODE(SUBSTR(EMP_NO, 8, 1), '1', 1, 0)) 남자
 FROM EMPLOYEE;
 
 
