@@ -669,6 +669,9 @@ ALTER TABLE EMPLOYEE_COPY ADD CONSTRAINT PK_EMP_COPY PRIMARY KEY(EMP_ID);
 
 -- * 수업시간에 활용하던 테이블에는 FK 제약조건 없는상태이므로 추가!!
 
+-- ALTER TABLE 테이블명 ADD [CONSTRAINT 제약조건명] 
+-- FOREIGN KEY(컬럼명) REFERENCES 참조 테이블명(참조컬럼명)
+
 -- EMPLOYEE테이블의 DEPT_CODE에 외래키 제약조건 추가
 -- 참조 테이블은 DEPARTMENT, 참조 컬럼은 DEPARTMENT의 기본키
 ALTER TABLE EMPLOYEE 
