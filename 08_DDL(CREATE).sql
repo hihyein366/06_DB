@@ -4,10 +4,13 @@
 데이터 딕셔너리는 사용자가 테이블을 생성하거나 사용자를 변경하는 등의
 작업을 할 때 데이터베이스 서버에 의해 자동으로 갱신되는 테이블
 
-
+* 딕셔너리 뷰 : 데이터 딕셔너리에서 필요한 데이터만 모아서 볼수 있는 가상 테이블
 - User_tables : 자신의 계정이 소유한 객체 등에 관한 정보를 조회 할 수 있는 딕셔너리 뷰
 
 */
+
+SELECT * FROM USER_TABLES;
+
 --------------------------------------------------------------------------------------------------------------------
 
 -- DDL(DATA DEFINITION LANGUAGE) : 데이터 정의 언어
@@ -16,9 +19,9 @@
 -- 데이터의 전체 구조를 정의하는 언어로 주로 DB관리자, 설계자가 사용함
 
 -- 오라클에서의 객체 : 테이블(TABLE), 뷰(VIEW), 시퀀스(SEQUENCE),
---                   인덱스(INDEX), 패키지(PACKAGE), 트리거(TRIGGER)
---                   프로시져(PROCEDURE), 함수(FUNCTION),
---                   동의어(SYNONYM), 사용자(USER)
+--                인덱스(INDEX), 패키지(PACKAGE), 트리거(TRIGGER)
+--                프로시져(PROCEDURE), 함수(FUNCTION),
+--                동의어(SYNONYM), 사용자(USER)
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -43,6 +46,7 @@
 
 /* 자료형
     NUMBER : 숫자형(정수, 실수)
+    
     CHAR(크기) : 고정길이 문자형 (2000BYTE) 
         -> ex) CHAR(10) 컬럼에 'ABC' 3BYTE 문자열만 저장해도 10BYTE 저장공간을 모두 사용. 
         
@@ -56,16 +60,48 @@
 
 -- MEMBER 테이블 생성
 
+-- 1) 필요한 컬럼 : 아이디, 비밀번호, 이름, 주민번호, 가입일
+
+-- 2) 컬럼명 지정 + 자료형
+
+/* UTF-8 :
+ * 영어, 숫자, 기본 특수 문자 == 1BYTE
+ * 나머지 == 3BYTE
+ */
+
+-- 아이디  : MEMBER_ID   / 자료형 : VARCHAR2 (20)
+-- 비번		 : MEMBER_PW   / 자료형 : VARCHAR2 (20)
+-- 이름		 : MEMBER_NAME / VARCHAR2 (15) (한글은 한글자당 3바이트라 이름 5글자까지)
+-- 주민번호 : MEMBER_SSN  / CHAR (14) (주민번호는 모두 14글자 고정이니까 CHAR 사용)
+-- 가입일  : ENROLL_DATE / DATE
+
+CREATE TABLE "MEMBER"(
+	MEMBER_ID VARCHAR2(20),
+	MEMBER_PW VARCHAR2(20),
+	MEMBER_NAME VARCHAR2(15),
+	MEMBER_SSN CHAR(14),
+	ENROLL_DATE DATE DEFAULT SYSDATE -- 현재 시간 기본값으로
+);
+
+-- DEFAULT (= 기본값) : 컬럼의 기본값 지정 (필수아님)
+ --> INSERT, UPDATE 시 해당 컬럼에 값을 넣지 않으면 지정한 기본값 들어감
 
 
 -- 만든 테이블 확인
+SELECT * FROM MEMBER;
+
+SELECT * FROM USER_TABLES;
 
 
 -- 2. 컬럼에 주석 달기
 -- [표현식]
 -- COMMENT ON COLUMN 테이블명.컬럼명 IS '주석내용';
 
-
+COMMENT ON COLUMN "MEMBER".MEMBER_ID IS '회원 아이디';
+COMMENT ON COLUMN "MEMBER".MEMBER_PW IS '회원 비밀번호';
+COMMENT ON COLUMN "MEMBER".MEMBER_NAME IS '회원 이름';
+COMMENT ON COLUMN "MEMBER".MEMBER_SSN IS '회원 주민번호';
+COMMENT ON COLUMN "MEMBER".ENROLL_DATE IS '회원 가입일';
 
 
 -- USER_TABLES : 사용자가 작성한 테이블을 확인 하는 뷰
@@ -75,27 +111,31 @@ SELECT * FROM USER_TABLES;
 -- DESC문 : 테이블의 구조를 표시
 DESC MEMBER;
 
-
 -- MEMBER 테이블에 샘플 데이터 삽입
-
-
+INSERT INTO "MEMBER"
+VALUES('MEM01', '123ABC', '김준면', '910522-1234567', TO_DATE('2024-03-06'));
 
 --  데이터  삽입 확인
+SELECT * FROM
+MEMBER ;
 
-
+COMMIT;
 
 -- 추가 샘플 데이터 삽입
 -- 가입일 -> SYSDATE를 활용
-
+INSERT INTO MEMBER 
+VALUES('MEM02', 'QWER1234', '김민석', '900326-1345678', SYSDATE);
 
 -- 가입일 -> DEFAULT 활용(테이블 생성 시 정의된 값이 반영됨)
-
+INSERT INTO "MEMBER"
+VALUES('MEM03', 'ASDFZXCV', '정혜인', '010906-4567890', DEFAULT);
 
 -- 가입일 -> INSERT 시 미작성 하는 경우 -> DEAFULT 값이 반영됨
-
+INSERT INTO "MEMBER"(MEMBER_ID, MEMBER_PW, MEMBER_NAME, MEMBER_SSN)
+VALUES('MEM04', 'BBHLOVE', '변백현', '920506-1345670');
 
 --  데이터  삽입 확인
-
+	SELECT * FROM "MEMBER";
 
 
 --------------------------------------------------------------------------------------------------------------------
@@ -125,14 +165,14 @@ DESC USER_CONS_COLUMNS;
 SELECT * FROM USER_CONS_COLUMNS;
 
 
-
 -- 1. NOT NULL 
 -- 해당 컬럼에 반드시 값이 기록되어야 하는 경우 사용
 -- 삽입/수정시 NULL값을 허용하지 않도록 컬럼레벨에서 제한
 
+/* NOT NULL은 컬럼 레벨로만 설정 가능! */
 
 CREATE TABLE USER_USED_NN(
-    USER_NO , 
+    USER_NO NUMBER NOT NULL, -- 컬럼 레벨 제약조건 설정
     
     USER_ID VARCHAR2(20) ,
     USER_PWD VARCHAR2(30) ,
@@ -150,7 +190,7 @@ INSERT INTO USER_USED_NN
 VALUES(NULL, NULL, NULL, NULL, NULL, '010-1234-5678', 'hong123@kh.or.kr');
 --> NOT NULL 제약 조건에 위배되어 오류 발생 
 -- ORA-01400: cannot insert NULL into ("KH"."USER_USED_NN"."USER_NO")
-
+-- ORA-01400: NULL을 ("KH_JHI"."USER_USED_NN"."USER_NO") 안에 삽입할 수 없습니다
 --------------------------------------------------------------------------------------------------------------------
 
 
@@ -159,34 +199,45 @@ VALUES(NULL, NULL, NULL, NULL, NULL, '010-1234-5678', 'hong123@kh.or.kr');
 -- 컬럼레벨에서 설정 가능, 테이블 레벨에서 설정 가능
 -- 단, UNIQUE 제약 조건이 설정된 컬럼에 NULL 값은 중복 삽입 가능.
 
+DROP TABLE USER_USED_UK ;
 
 -- UNIQUE 제약 조건 테이블 생성
 CREATE TABLE USER_USED_UK(
     USER_NO NUMBER,
-    USER_ID VARCHAR2(20) , 
+    
+    -- USER_ID VARCHAR2(20) UNIQUE, -- 컬럼 레벨 제약조건 설정 
+    
+    USER_ID VARCHAR2(20) CONSTRAINT USER_ID_U UNIQUE, 
+    									-- CONSTRAINT 제약조건명 제약조건류
+    									-- 컬럼 레벨 제약조건 설정 (이름O)
     
     USER_PWD VARCHAR2(30) ,
-    USER_NAME VARCHAR2(30),
+    
+    USER_NAME VARCHAR2(30), -- 테이블 레벨로 UNIQUE 제약조건 설정
     GENDER VARCHAR2(10),
     PHONE VARCHAR2(30),
-    EMAIL VARCHAR2(50)
-
+    EMAIL VARCHAR2(50),
+    
+    -- 테이블 레벨 --
+    -- UNIQUE(USER_NAME) -- 테이블 레벨 제약 조건
+    CONSTRAINT USER_NAME_U UNIQUE(USER_NAME)
 );
 
 
 INSERT INTO USER_USED_UK
-VALUES(1, 'user01', 'pass01', '홍길동', '남', '010-1234-5678', 'hong123@kh.or.kr');
+VALUES(1, 'user01', 'pass01', '감길동', '남', '010-1234-5678', 'hong123@kh.or.kr');
 
 INSERT INTO USER_USED_UK
-VALUES(1, 'user01', 'pass01', '홍길동', '남', '010-1234-5678', 'hong123@kh.or.kr');
+VALUES(1, 'user01', 'pass01', '남길동', '남', '010-1234-5678', 'hong123@kh.or.kr');
 --> 같은 아이디인 데이터가 이미 테이블에 있으므로 UNIQUE 제약 조건에 위배되어 오류발생
+-- ORA-00001: 무결성 제약 조건(KH_JHI.USER_ID_U)에 위배됩니다
 
 INSERT INTO USER_USED_UK
-VALUES(1, NULL, 'pass01', '홍길동', '남', '010-1234-5678', 'hong123@kh.or.kr');
+VALUES(1, NULL, 'pass01', '헉길동', '남', '010-1234-5678', 'hong123@kh.or.kr');
 --> 아이디에 NULL 값 삽입 가능.
 
 INSERT INTO USER_USED_UK
-VALUES(1, NULL, 'pass01', '홍길동', '남', '010-1234-5678', 'hong123@kh.or.kr');
+VALUES(1, NULL, 'pass01', '쒯길동', '남', '010-1234-5678', 'hong123@kh.or.kr');
 --> 아이디에 NULL 값 중복 삽입 가능.
 
 SELECT  * FROM USER_USED_UK; 
@@ -197,7 +248,7 @@ SELECT  * FROM USER_USED_UK;
 SELECT UCC.TABLE_NAME, UCC.COLUMN_NAME, UC.CONSTRAINT_TYPE
 FROM USER_CONSTRAINTS UC, USER_CONS_COLUMNS UCC
 WHERE UCC.CONSTRAINT_NAME = UC.CONSTRAINT_NAME
-AND UCC.CONSTRAINT_NAME = '제약조건명';
+AND UCC.CONSTRAINT_NAME = 'USER_ID_U'; -- '제약조건명';
 
 
 ---------------------------------------
@@ -212,8 +263,10 @@ CREATE TABLE USER_USED_UK2(
     USER_NAME VARCHAR2(30),
     GENDER VARCHAR2(10),
     PHONE VARCHAR2(30),
-    EMAIL VARCHAR2(50)
-  
+    EMAIL VARCHAR2(50),
+    
+    -- 테이블 레벨 복합키 설정
+		CONSTRAINT USER_ID_NAME_U UNIQUE(USER_ID, USER_NAME)
 );
 
 
@@ -229,6 +282,7 @@ VALUES(2, 'user02', 'pass01', '홍길동', '남', '010-1234-5678', 'hong123@kh.o
 --> USER_ID가 다름
 
 INSERT INTO USER_USED_UK2
+
 VALUES(1, 'user01', 'pass01', '홍길동', '남', '010-1234-5678', 'hong123@kh.or.kr');
 --> 여러 컬럼을 묶어서 UNIQUE 제약 조건이 설정되어 있으면 
 -- 두 컬럼이 모두 중복되는 값일 경우에만 오류 발생
@@ -237,6 +291,8 @@ SELECT * FROM USER_USED_UK2;
 
 
 ----------------------------------------------------------------------------------------------------------------
+
+SELECT * FROM EMPLOYEE;
 
 -- 3. PRIMARY KEY(기본키) 제약조건 
 
@@ -249,15 +305,16 @@ SELECT * FROM USER_USED_UK2;
 
 
 CREATE TABLE USER_USED_PK(
-    USER_NO NUMBER ,
+    USER_NO NUMBER /*CONSTRAINT USER_NO_PK PRIMARY KEY*/ ,
     
     USER_ID VARCHAR2(20) UNIQUE,
     USER_PWD VARCHAR2(30) NOT NULL,
     USER_NAME VARCHAR2(30),
     GENDER VARCHAR2(10),
     PHONE VARCHAR2(30),
-    EMAIL VARCHAR2(50)
-
+    EMAIL VARCHAR2(50),
+    
+    CONSTRAINT USER_NO_PK PRIMARY KEY(USER_NO)
 );
 
 INSERT INTO USER_USED_PK
@@ -302,6 +359,8 @@ VALUES(1, 'user01', 'pass01', '신사임당', '여', '010-9999-9999', 'sin123@kh
 SELECT * FROM USER_USED_PK2;
 
 -- PRIMARY KEY는 NULL이 들어갈 수 없음
+--> 복합키에서 중복은 모든 컬럼 묶어서 검사.
+--> NOT NULL은 각 컬럼별로 검사
 INSERT INTO USER_USED_PK2
 VALUES(NULL, 'user01', 'pass01', '신사임당', '여', '010-9999-9999', 'sin123@kh.or.kr');
 
@@ -311,6 +370,8 @@ VALUES(NULL, 'user01', 'pass01', '신사임당', '여', '010-9999-9999', 'sin123
 -- 4. FOREIGN KEY(외부키 / 외래키) 제약조건 
 
 -- 참조(REFERENCES)된 다른 테이블의 컬럼이 제공하는 값만 사용할 수 있음
+ --> 다른 테이블이 제공하는 컬럼에는 PK 또는 U 제약 조건이 설정되어 있어야 한다
+
 -- FOREIGN KEY제약조건에 의해서 테이블간의 관계(RELATIONSHIP)가 형성됨
 -- 제공되는 값 외에는 NULL을 사용할 수 있음
 
@@ -342,7 +403,9 @@ CREATE TABLE USER_USED_FK(
   GENDER VARCHAR2(10),
   PHONE VARCHAR2(30),
   EMAIL VARCHAR2(50),
-  GRADE_CODE NUMBER
+  
+  -- 컬럼 레벨
+  GRADE_CODE NUMBER CONSTRAINT GRADE_CODE_FK1 REFERENCES USER_GRADE(GRADE_CODE)
   
 );
 
@@ -367,6 +430,21 @@ VALUES(5, 'user05', 'pass05', '윤봉길', '남', '010-6666-1234', 'yoon123@kh.o
 --> 50이라는 값은 USER_GRADE 테이블 GRADE_CODE 컬럼에서 제공하는 값이 아니므로
  -- 외래키 제약 조건에 위배되어 오류 발생.
 
+-- 부모 키가 없다... 참조하는 테이블에 값이 존재하지 않음
+
+/* 참조 하는 테이블 == 자식 테이블 */
+
+/* JOIN : 두 테이블에서 같은 값을 가지고 있는 컬럼을 기준으로 연결
+ * (FK 제약조건이 설정되어있지 않아도 사용 가능)
+ * 
+ * FK 제약조건이 설정된 부모 - 자식 테이블
+ * -> 무조건 JOIN 가능
+*/
+
+SELECT *
+FROM USER_USED_FK
+LEFT JOIN USER_GRADE USING(GRADE_CODE);
+
 
 ---------------------------------------
 
@@ -382,7 +460,10 @@ SELECT * FROM USER_USED_FK;
 -- 제공하는 컬럼의 값은 삭제하지 못함
 
 -- GRADE_CODE 중 20은 외래키로 참조되고 있지 않으므로 삭제가 가능함.
+DELETE FROM USER_GRADE WHERE GRADE_CODE = 20;
 
+-- 10은 자식키 있어서 삭제 불가
+DELETE FROM USER_GRADE WHERE GRADE_CODE = 10;
 
 
 -- 2) ON DELETE SET NULL : 부모키 삭제시 자식키를 NULL로 변경하는 옵션
@@ -404,8 +485,13 @@ CREATE TABLE USER_USED_FK2(
   GENDER VARCHAR2(10),
   PHONE VARCHAR2(30),
   EMAIL VARCHAR2(50),
-  GRADE_CODE NUMBER
+  GRADE_CODE NUMBER,
   
+  -- 테이블 레벨 FK + 삭제 옵션
+  CONSTRAINT GRADE_CODE_FK2 
+  FOREIGN KEY (GRADE_CODE) 
+  REFERENCES USER_GRADE2(GRADE_CODE)
+  ON DELETE SET NULL -- 부모키 삭제 되면 자식 NULL로 변경
 );
 
 --샘플 데이터 삽입
@@ -426,11 +512,12 @@ COMMIT;
 SELECT * FROM USER_GRADE2;
 SELECT * FROM USER_USED_FK2;
 
--- 부모 테이블인 USER_GRADE2에서 GRADE_COE =10 삭제
+
+-- 부모 테이블인 USER_GRADE2에서 GRADE_CODE =10 삭제
+DELETE FROM USER_GRADE2 WHERE GRADE_CODE = 10;
+-- 10 참조하던 것 NULL로 변경됨
+
 --> ON DELETE SET NULL 옵션이 설정되어 있어 오류없이 삭제됨.
-
-
-
 
 
 -- 3) ON DELETE CASCADE : 부모키 삭제시 자식키도 함께 삭제됨
@@ -454,7 +541,12 @@ CREATE TABLE USER_USED_FK3(
   GENDER VARCHAR2(10),
   PHONE VARCHAR2(30),
   EMAIL VARCHAR2(50),
-  GRADE_CODE NUMBER
+  GRADE_CODE NUMBER,
+  
+  CONSTRAINT GRADE_CODE_FK3 
+  FOREIGN KEY(GRADE_CODE)
+  REFERENCES USER_GRADE3(GRADE_CODE)
+  ON DELETE CASCADE -- 부모키 삭제 시 자식 행 모두 삭제
   
 );
 
@@ -477,13 +569,11 @@ SELECT * FROM USER_GRADE3;
 SELECT * FROM USER_USED_FK3;
 
 
--- 부모 테이블인 USER_GRADE3에서 GRADE_COE =10 삭제
+-- 부모 테이블인 USER_GRADE3에서 GRADE_CODE =10 삭제
 --> ON DELETE CASECADE 옵션이 설정되어 있어 오류없이 삭제됨.
-
+DELETE USER_GRADE3 WHERE GRADE_CODE = 10;
 
 -- ON DELETE CASECADE 옵션으로 인해 참조키를 사용한 행이 삭제됨을 확인
-
-
 
 ----------------------------------------------------------------------------------------------------------------
 
@@ -495,9 +585,12 @@ CREATE TABLE USER_USED_CHECK(
   USER_ID VARCHAR2(20) UNIQUE,
   USER_PWD VARCHAR2(30) NOT NULL,
   USER_NAME VARCHAR2(30),
-  GENDER VARCHAR2(10) ,
+  GENDER VARCHAR2(10) CONSTRAINT GENDER_CHECK CHECK(GENDER IN ('남', '여')),
   PHONE VARCHAR2(30),
-  EMAIL VARCHAR2(50)
+  EMAIL VARCHAR2(50),
+  
+  -- 테이블 레벨 (컬럼레벨과 작성법 같음)
+--  CONSTRAINT GENDER_CHECK CHECK(GENDER IN ('남', '여'))
 );
 
 INSERT INTO USER_USED_CHECK
@@ -536,12 +629,22 @@ VALUES(2, 'user02', 'pass02', '홍길동', '남자', '010-1234-5678', 'hong123@k
 
 -- 1) 테이블 전체 복사
 
+CREATE TABLE EMPLOYEE_COPY
+AS SELECT * FROM EMPLOYEE;
+
 SELECT * FROM EMPLOYEE_COPY;
+--> NOT NULL 제약조건 제외한 다른 제약 조건은 복사 X
+-- + DEFAULT, COMMENT 복사도 안됐음
 
 -- 2) JOIN 후 원하는 컬럼만 테이블로 복사
+CREATE TABLE EMPLOYEE_COPY2
+AS SELECT EMP_NAME, NVL(DEPT_TITLE, '소속없음') DEPT_TITLE, JOB_NAME
+	FROM EMPLOYEE 
+	LEFT JOIN DEPARTMENT ON(DEPT_CODE = DEPT_ID)
+	JOIN JOB USING(JOB_CODE)
+	ORDER BY EMP_NAME;
 
-
-
+SELECT * FROM EMPLOYEE_COPY2;
 
 -- 9. 제약조건 추가
 -- ALTER TABLE 테이블명 ADD [CONSTRAINT 제약조건명] PRIMARY KEY(컬럼명)
@@ -566,24 +669,39 @@ ALTER TABLE EMPLOYEE_COPY ADD CONSTRAINT PK_EMP_COPY PRIMARY KEY(EMP_ID);
 
 -- * 수업시간에 활용하던 테이블에는 FK 제약조건 없는상태이므로 추가!!
 
-
 -- EMPLOYEE테이블의 DEPT_CODE에 외래키 제약조건 추가
 -- 참조 테이블은 DEPARTMENT, 참조 컬럼은 DEPARTMENT의 기본키
-
+ALTER TABLE EMPLOYEE 
+ADD CONSTRAINT DEPT_CODE_FK
+FOREIGN KEY(DEPT_CODE)
+REFERENCES DEPARTMENT; -- DEPARTMENT 테이블 PK 컬럼 참조
 
 -- EMPLOYEE테이블의 JOB_CODE 외래키 제약조건 추가
 -- 참조 테이블은 JOB, 참조 컬럼은 JOB의 기본키
-
+ALTER TABLE EMPLOYEE 
+ADD CONSTRAINT JOB_CODE_FK
+FOREIGN KEY(JOB_CODE)
+REFERENCES JOB;
 
 -- EMPLOYEE테이블의 SAL_LEVEL 외래키 제약조건 추가
 -- 참조 테이블은 SAL_GRADE, 참조 컬럼은 SAL_GRADE의 기본키
-
+ALTER TABLE EMPLOYEE 
+ADD CONSTRAINT SAL_LEVEL_FK
+FOREIGN KEY(SAL_LEVEL)
+REFERENCES SAL_GRADE;
 
 -- DEPARTMENT테이블의 LOCATION_ID에 외래키 제약조건 추가
 -- 참조 테이블은 LOCATION, 참조 컬럼은 LOCATION의 기본키
+ALTER TABLE DEPARTMENT 
+ADD CONSTRAINT LOCATION_ID_FK
+FOREIGN KEY(LOCATION_ID)
+REFERENCES LOCATION;
 
 
 -- LOCATION테이블의 NATIONAL_CODE에 외래키 제약조건 추가
 -- 참조 테이블은 NATIONAL, 참조 컬럼은 NATIONAL의 기본키
-
+ALTER TABLE LOCATION 
+ADD CONSTRAINT NATIONAL_CODE_FK
+FOREIGN KEY(NATIONAL_CODE)
+REFERENCES NATIONAL;
 
