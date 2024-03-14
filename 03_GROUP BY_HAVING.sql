@@ -279,8 +279,3 @@ UNION
 SELECT '홍길동', 4000000 FROM DUAL;
 
 
-
-
-
-
-
